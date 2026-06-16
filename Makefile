@@ -1,5 +1,9 @@
-run:
-	go run cmd/hexlet-path-size/main.go
+RUN_ARGS ?=
+APP_NAME := hexlet-path-size
+
+.PHONY: fmt vet tidy build test run vuln clean
+
+.DEFAULT_GOAL := build
 
 fmt:
 	go fmt ./...
@@ -7,12 +11,20 @@ fmt:
 vet: fmt
 	go vet ./...
 
-build: vet
-	go build -o bin/hexlet-path-size ./cmd/hexlet-path-size
+tidy:
+	go mod tidy
+
+build: vet tidy
+	go build -o bin/$(APP_NAME) ./cmd/$(APP_NAME)
+
+test: vet tidy
+	go test -v ./...
+
+run:
+	go run cmd/$(APP_NAME)/main.go $(RUN_ARGS)
 
 vuln:
 	govulncheck ./...
 
-.PHONY: fmt vet build test
-
-.DEFAULT_GOAL := build
+clean:
+	rm -rf bin/
