@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"code"
 	"github.com/urfave/cli/v3"
+
+	"code"
 )
 
 func main() {
@@ -16,7 +17,6 @@ func main() {
 		Action: func(ctx context.Context, c *cli.Command) error {
 			path := c.Args().Get(0)
 			size, err := code.GetPathSize(path)
-
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 				os.Exit(1)
@@ -29,9 +29,8 @@ func main() {
 	}
 
 	err := cmd.Run(context.Background(), os.Args)
-
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		os.Exit(2)
+		os.Exit(1)
 	}
 }

@@ -8,7 +8,6 @@ import (
 // GetPathSize returns the size of a file or directory in bytes as a string.
 func GetPathSize(path string) (string, error) {
 	info, err := os.Lstat(path)
-
 	if err != nil {
 		return "", err
 	}
@@ -18,7 +17,6 @@ func GetPathSize(path string) (string, error) {
 	}
 
 	entries, err := os.ReadDir(path)
-
 	if err != nil {
 		return "", err
 	}
@@ -31,7 +29,6 @@ func GetPathSize(path string) (string, error) {
 		}
 
 		info, err := entry.Info()
-
 		if err != nil {
 			return "", err
 		}
