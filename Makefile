@@ -11,8 +11,14 @@ fmt:
 tidy:
 	go mod tidy
 
-test: fmt tidy
+test:
 	go test -v ./...
+
+test-coverage:
+	go test -v -cover -coverprofile=coverage.out ./...
+
+show-coverage:
+	go tool cover -html=coverage.out
 
 lint: fmt
 	golangci-lint run
@@ -20,7 +26,7 @@ lint: fmt
 lint-fix:
 	golangci-lint run --fix
 
-build: lint
+build: lint test
 	go build -o bin/$(APP_NAME) ./cmd/$(APP_NAME)
 
 run:
