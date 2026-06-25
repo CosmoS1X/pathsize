@@ -8,66 +8,89 @@ import (
 )
 
 func TestGet(t *testing.T) {
-	t.Run("file", func(t *testing.T) {
-		result, err := Get("testdata/test.txt", false, false, false)
-		require.NoError(t, err)
-		require.Equal(t, "6B", result)
-	})
+	cases := []struct {
+		name      string
+		path      string
+		recursive bool
+		human     bool
+		all       bool
+		want      string
+	}{
+		{
+			name: "returns size for a single file",
+			path: "testdata/test.txt",
+			want: "6B",
+		},
+		{
+			name:  "returns human-readable size for a single file",
+			path:  "testdata/test.txt",
+			human: true,
+			want:  "6B",
+		},
+		{
+			name:  "returns human-readable size in KB for a file",
+			path:  "testdata/0_YISbBYJg5hkJGcQd.png",
+			human: true,
+			want:  "22.5KB",
+		},
+		{
+			name: "returns size for a directory",
+			path: "testdata",
+			want: "293830B",
+		},
+		{
+			name:  "returns human-readable size for a directory",
+			path:  "testdata",
+			human: true,
+			want:  "293.8KB",
+		},
+		{
+			name: "ignores hidden files",
+			path: "testdata/hidden",
+			want: "0B",
+		},
+		{
+			name: "includes hidden files",
+			path: "testdata/hidden",
+			all:  true,
+			want: "11B",
+		},
+		{
+			name:      "returns recursive size while ignoring hidden files",
+			path:      "testdata/recursive",
+			recursive: true,
+			want:      "55B",
+		},
+		{
+			name:      "returns recursive size including hidden files",
+			path:      "testdata/recursive",
+			recursive: true,
+			all:       true,
+			want:      "89B",
+		},
+	}
 
-	t.Run("file with human-readable size", func(t *testing.T) {
-		result, err := Get("testdata/test.txt", false, true, false)
-		require.NoError(t, err)
-		require.Equal(t, "6B", result)
-		result, err = Get("testdata/0_YISbBYJg5hkJGcQd.png", false, true, false)
-		require.NoError(t, err)
-		require.Equal(t, "22.5KB", result)
-	})
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := Get(c.path, c.recursive, c.human, c.all)
+			require.NoError(t, err)
+			require.Equal(t, c.want, got)
+		})
+	}
 
-	t.Run("directory", func(t *testing.T) {
-		result, err := Get("testdata", false, false, false)
-		require.NoError(t, err)
-		require.Equal(t, "293830B", result)
-	})
-
-	t.Run("directory with human-readable size", func(t *testing.T) {
-		result, err := Get("testdata", false, true, false)
-		require.NoError(t, err)
-		require.Equal(t, "293.8KB", result)
-	})
-
+	// Test error cases
 	t.Run("nonexistent path", func(t *testing.T) {
-		result, err := Get("unknown", false, false, false)
+		got, err := Get("unknown", false, false, false)
 		require.ErrorIs(t, err, os.ErrNotExist)
-		require.Empty(t, result)
+		require.Empty(t, got)
 	})
 
 	t.Run("unreadable directory", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chmod(dir, 0o000))
 
-		result, err := Get(dir, false, false, false)
+		got, err := Get(dir, false, false, false)
 		require.Error(t, err)
-		require.Empty(t, result)
-	})
-
-	t.Run("directory with hidden files", func(t *testing.T) {
-		result, err := Get("testdata/hidden", false, false, false)
-		require.NoError(t, err)
-		require.Equal(t, "0B", result)
-
-		result, err = Get("testdata/hidden", false, false, true)
-		require.NoError(t, err)
-		require.Equal(t, "11B", result)
-	})
-
-	t.Run("recursive directory size", func(t *testing.T) {
-		result, err := Get("testdata/recursive", true, false, false)
-		require.NoError(t, err)
-		require.Equal(t, "55B", result)
-
-		// including hidden files and directories
-		result, err = Get("testdata/recursive", true, false, true)
-		require.NoError(t, err)
-		require.Equal(t, "89B", result)
+		require.Empty(t, got)
 	})
 }
